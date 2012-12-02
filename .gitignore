@@ -1,3 +1,5 @@
+opencv-samples/
+
 *.py[cod]
 
 # C extensions
