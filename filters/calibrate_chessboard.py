@@ -1,6 +1,5 @@
 from base_filter import BaseFilter
 import cv2.cv as cv
-import cv2
 import math
 
 class CalibrateChessFilter(BaseFilter):
@@ -19,9 +18,11 @@ class CalibrateChessFilter(BaseFilter):
         if not found_all:
             meta_img.meta.get('errors', []).append('No chessboard!')
             meta_img.meta['mm_on_px'] = 5
+            meta_img.meta['ok'] = False
         else:
             avg_ss_px = self._avg_square_size_in_px(corners)
             meta_img.meta['mm_on_px'] = self.params['square_size_in_mm'] / avg_ss_px
+            meta_img.meta['ok'] = meta_img.meta.get('ok', True)
             cv.DrawChessboardCorners(meta_img.img, self.params['dims'], corners, found_all)
             
                           

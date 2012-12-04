@@ -42,3 +42,23 @@ class CalibrationFilterTest(unittest.TestCase):
         meta_img = MetaImg(self.chess_and_oval1, {})
         f1(meta_img)
         self.assertLess(abs(meta_img.meta['mm_on_px'] - 0.3333), 0.05)
+        
+    def test_find_corners_tilted(self):
+        im3 = cv.LoadImage('tests/chess3.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        f1 = CalibrateChessFilter({'dims': (4,4),
+                                   'square_size_in_mm': 5})
+        meta_img = MetaImg(im3, {})
+        f1(meta_img)
+        self.assertTrue(meta_img.meta['ok'], 5)
+        
+
+        
+    def test_find_corners_real(self):
+        im3 = cv.LoadImage('tests/chess5.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        f1 = CalibrateChessFilter({'dims': (4,4),
+                                   'square_size_in_mm': 5})
+        meta_img = MetaImg(im3, {})
+        f1(meta_img)
+        self.assertTrue(meta_img.meta['ok'])
+        
+        
