@@ -29,7 +29,7 @@ class CalibrationFilterTest(unittest.TestCase):
         f1 = CalibrateChessFilter()
         meta_img = MetaImg(self.lena3, {})
         f1(meta_img)
-        self.assertEqual(meta_img.meta['gray'].shape[:2], self.lena3_ref.shape[:2])
+        self.assertEqual(meta_img.gray.shape[:2], self.lena3_ref.shape[:2])
      
     def test_avg(self):
         f1 = CalibrateChessFilter({'dims':(3,2)})
@@ -62,19 +62,32 @@ class CalibrationFilterTest(unittest.TestCase):
         f1(meta_img)
         self.assertTrue(meta_img.meta['ok'])
         
-    
-#    
-#class SeparateObjectFilterTest(unittest.TestCase):
-#    def setUp(self):
-#        pass
-#
-#    def test_basic(self):
-#        im3 = cv2.imread('tests/chess3.jpg', cv.CV_LOAD_IMAGE_COLOR)
-#        f1 = SeparateObjectFilter()
-#        meta_img = MetaImg(im3, {})
-#        f1.filter(meta_img)
+    def test_find_corners_joint(self):
+        im3 = cv2.imread('tests/chess_and_seed2.jpg', cv2.CV_LOAD_IMAGE_COLOR)
+        f1 = CalibrateChessFilter({'dims': (4,4),
+                                   'square_size_in_mm': 5})
+        meta_img = MetaImg(im3, {})
+        f1(meta_img)
+        self.assertTrue(meta_img.meta['ok'])
         
+class SeparateObjectFilterTest(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_bg_avg(self):
+        im3 = cv2.imread('tests/chess_and_seed2.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        f1 = SeparateObjectFilter()
+        meta_img = MetaImg(im3, {})
+        f1.filter(meta_img)
+        self.assertGreater(meta_img.meta['bg_avg'], 160)
         
-        
+    def test_remove_chessboard(self):
+        im3 = cv2.imread('tests/chess3.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        f1 = SeparateObjectFilter()
+        meta_img = MetaImg(im3, {})
+        f1.filter(meta_img)
+        self.assertLess(np.sum(meta_img.meta['mask'])/255, 30)
+        cv2.imshow('win', meta_img.meta['mask'])
+        cv2.waitKey()
         
         

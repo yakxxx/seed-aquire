@@ -1,7 +1,35 @@
-from collections import namedtuple
+import cv2.cv as cv
+import cv2
 
 
-MetaImg = namedtuple('MetaImg', ['img', 'meta'])
+
+class MetaImg(object):
+    
+    def __init__(self, img, meta, params={'dims': (4,4)}):
+        self.img = img
+        self.meta = meta
+        self.params = params
+        self._gray = None
+        self._corners = None
+        
+        
+    @property
+    def gray(self):
+        if self._gray != None:
+            return self._gray
+        
+        self._gray = cv2.cvtColor(self.img, cv2.COLOR_RGB2GRAY)
+        return self.gray
+    
+    @property
+    def corners(self):
+        if self._corners != None:
+            return self._corners
+        
+        found_all, self._corners = cv2.findChessboardCorners(self.gray,
+                                    self.params['dims'],
+                                    flags=cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE)
+        return found_all, self._corners
 
 
 class BaseFilter(object):
