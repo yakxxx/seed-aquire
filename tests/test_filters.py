@@ -5,6 +5,7 @@ from filters.separate_object import SeparateObjectFilter
 import cv2.cv as cv
 import cv2
 import numpy as np
+from time import time
 
 
 class CalibrationFilterTest(unittest.TestCase):
@@ -70,6 +71,19 @@ class CalibrationFilterTest(unittest.TestCase):
         f1(meta_img)
         self.assertTrue(meta_img.meta['ok'])
         
+    def test_chess_speed(self):
+        im3 = cv2.imread('tests/chess_and_seed2.jpg', cv2.CV_LOAD_IMAGE_COLOR)
+        f1 = CalibrateChessFilter({'dims': (4,4),
+                                   'square_size_in_mm': 5})
+        t = time()
+        for i in xrange(25):
+            meta_img = MetaImg(np.array(im3), {})
+            f1.filter(meta_img)
+        t2 = time()
+        self.assertLess(t2-t, 4)
+        
+        
+        
 class SeparateObjectFilterTest(unittest.TestCase):
     def setUp(self):
         pass
@@ -79,6 +93,7 @@ class SeparateObjectFilterTest(unittest.TestCase):
         f1 = SeparateObjectFilter()
         meta_img = MetaImg(im3, {})
         f1.filter(meta_img)
+        cv2.imwrite('mask.png', meta_img.meta['mask'])
         self.assertGreater(meta_img.meta['bg_avg'], 160)
         
     def test_remove_chessboard(self):
@@ -87,7 +102,44 @@ class SeparateObjectFilterTest(unittest.TestCase):
         meta_img = MetaImg(im3, {})
         f1.filter(meta_img)
         self.assertLess(np.sum(meta_img.meta['mask'])/255, 30)
-        cv2.imshow('win', meta_img.meta['mask'])
-        cv2.waitKey()
+        
+    def test_elipse(self):
+        im3 = cv2.imread('tests/chess_and_seed2.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        f1 = SeparateObjectFilter()
+        meta_img = MetaImg(im3, {})
+        f1.filter(meta_img)
+        self.assertTrue(meta_img.meta.get('ellipse', False))
+        
+        
+    def test_speed(self):
+        im3 = cv2.imread('tests/chess_and_seed2.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        f1 = SeparateObjectFilter()
+        t = time()
+        for i in xrange(25):
+            meta_img = MetaImg(im3, {})
+            f1.filter(meta_img)
+        t2 = time()
+        self.assertLess(t2-t, 5) #at least 5 frames for second
+#        cv2.imshow('win', meta_img.img)
+#        cv2.waitKey()
+
+
+class SppedTest(unittest.TestCase):
+    
+    def full_fitlers_test(self):
+        im3 = cv2.imread('tests/chess_and_seed2.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        f1 = CalibrateChessFilter({'dims': (4,4),
+                                   'square_size_in_mm': 5})
+        f2 = SeparateObjectFilter()
+        
+        t = time()
+        for i in xrange(25):
+            meta_img = MetaImg(np.array(im3), {})
+            f1.filter(meta_img)
+            f2.filter(meta_img)
+        t2 = time()
+        self.assertLess(t2-t, 5) #at least 5 frames for second
+    
+        
         
         

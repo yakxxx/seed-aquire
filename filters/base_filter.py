@@ -26,10 +26,11 @@ class MetaImg(object):
         if self._corners != None:
             return self._corners
         
-        found_all, self._corners = cv2.findChessboardCorners(self.gray,
+        found_all, corners = cv2.findChessboardCorners(self.gray,
                                     self.params['dims'],
-                                    flags=cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE)
-        return found_all, self._corners
+                                    flags=cv2.CALIB_CB_NORMALIZE_IMAGE+ cv2.CALIB_CB_FILTER_QUADS + cv2.CALIB_CB_ADAPTIVE_THRESH)
+        self._corners = found_all, corners
+        return found_all, corners
 
 
 class BaseFilter(object):

@@ -19,11 +19,14 @@ class SeparateObjectFilter(BaseFilter):
         
         mask = np.bitwise_and(mask, mask2)
         meta_img.meta['mask'] = mask
-#        print meta_img.gray
+        
+        contour = self._find_max_contour(mask)
+        if len(contour) > 5:
+            ellipse = cv2.fitEllipse(contour.astype('int'))
+            cv2.ellipse(meta_img.img, ellipse, (0,255,0))
+            meta_img.meta['ellipse'] = ellipse
     
 
-    
-    
     def _remove_bg(self, meta_img):
         meta = {}
         mask = self._create_bg_probe_mask(meta_img.img)
@@ -67,3 +70,8 @@ class SeparateObjectFilter(BaseFilter):
         
         return p1, p2, mask
         
+    def _find_max_contour(self, mask):
+        contours, _ = cv2.findContours(np.array(mask), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        area, i = max([(cv2.contourArea(contour.astype('int')), i) for i, contour in enumerate(contours)])
+        contour = contours[i]
+        return contour
