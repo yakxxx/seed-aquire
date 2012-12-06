@@ -110,7 +110,24 @@ class SeparateObjectFilterTest(unittest.TestCase):
         f1.filter(meta_img)
         self.assertTrue(meta_img.meta.get('ellipse', False))
         
-        
+    def test_no_chess(self):
+        im3 = cv2.imread('tests/lena.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        f1 = SeparateObjectFilter()
+        meta_img = MetaImg(im3, {})
+        try:
+            f1.filter(meta_img)
+        except:
+            self.fail()
+            
+    def test_no_object(self):
+        im3 = cv2.imread('tests/no_object.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        f1 = SeparateObjectFilter()
+        meta_img = MetaImg(im3, {})
+        try:
+            f1.filter(meta_img)
+        except:
+            self.fail()
+            
     def test_speed(self):
         im3 = cv2.imread('tests/chess_and_seed2.jpg', cv.CV_LOAD_IMAGE_COLOR)
         f1 = SeparateObjectFilter()

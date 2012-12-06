@@ -52,26 +52,35 @@ class SeparateObjectFilter(BaseFilter):
         return mask
     
     def _remove_checkerboard(self, meta_img):
-        _, corners = meta_img.corners
-        x_cords = corners[:, 0, 0]
-        y_cords = corners[:, 0, 1]
-        center_x = np.average(x_cords)
-        center_y = np.average(y_cords)
-        width = int((max(x_cords) - min(x_cords)) * 1.65)
-        height = int((max(y_cords) - min(y_cords)) * 1.65)
-        
-        size = meta_img.img.shape[:2]
-        mask = np.empty(size, dtype=np.uint8)
-        mask.fill(255)
-        p1 = ( int(max(0, center_x - width/2)), int(max(0, center_y - width/2)) )
-        p2 = ( int(min(size[0], center_x + width/2)), int(min(size[1], center_y + width/2)) )
-        cv2.rectangle(mask, p1, p2, 
-                0, thickness=cv.CV_FILLED)
+        found_all, corners = meta_img.corners
+        if not found_all:
+            size = meta_img.img.shape[:2]
+            mask = np.empty(size, dtype=np.uint8)
+            mask.fill(255)
+            p1 = p2 = (0,0)
+        else:
+            x_cords = corners[:, 0, 0]
+            y_cords = corners[:, 0, 1]
+            center_x = np.average(x_cords)
+            center_y = np.average(y_cords)
+            width = int((max(x_cords) - min(x_cords)) * 1.65)
+            height = int((max(y_cords) - min(y_cords)) * 1.65)
+            
+            size = meta_img.img.shape[:2]
+            mask = np.empty(size, dtype=np.uint8)
+            mask.fill(255)
+            p1 = ( int(max(0, center_x - width/2)), int(max(0, center_y - width/2)) )
+            p2 = ( int(min(size[0], center_x + width/2)), int(min(size[1], center_y + width/2)) )
+            cv2.rectangle(mask, p1, p2, 
+                    0, thickness=cv.CV_FILLED)
         
         return p1, p2, mask
         
     def _find_max_contour(self, mask):
         contours, _ = cv2.findContours(np.array(mask), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        area, i = max([(cv2.contourArea(contour.astype('int')), i) for i, contour in enumerate(contours)])
+        try:
+            area, i = max([(cv2.contourArea(contour.astype('int')), i) for i, contour in enumerate(contours)])
+        except ValueError: #no  contours
+            return []
         contour = contours[i]
         return contour
