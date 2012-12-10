@@ -108,7 +108,7 @@ class SeparateObjectFilterTest(unittest.TestCase):
         f1 = SeparateObjectFilter()
         meta_img = MetaImg(im3, {})
         f1.filter(meta_img)
-        self.assertTrue(meta_img.meta.get('ellipse', False))
+        self.assertTrue(meta_img.meta.get('ellipsis', False))
         
     def test_no_chess(self):
         im3 = cv2.imread('tests/lena.jpg', cv.CV_LOAD_IMAGE_COLOR)
@@ -140,6 +140,18 @@ class SeparateObjectFilterTest(unittest.TestCase):
 #        cv2.imshow('win', meta_img.img)
 #        cv2.waitKey()
 
+
+    def test_measure(self):
+        im3 = cv2.imread('tests/chess_and_seed2.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        f1 = CalibrateChessFilter({'dims': (4,4),
+                                   'square_size_in_mm': 5})
+        f2 = SeparateObjectFilter()
+
+        meta_img = MetaImg(im3, {})
+        f1(meta_img)
+        f2(meta_img)
+        print meta_img.meta['ellipsis']
+        
 
 class SppedTest(unittest.TestCase):
     

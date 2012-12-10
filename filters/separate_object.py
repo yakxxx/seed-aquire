@@ -24,7 +24,7 @@ class SeparateObjectFilter(BaseFilter):
         if len(contour) > 5:
             ellipse = cv2.fitEllipse(contour.astype('int'))
             cv2.ellipse(meta_img.img, ellipse, (0,255,0))
-            meta_img.meta['ellipse'] = ellipse
+            meta_img.meta['ellipsis'] = ellipse
     
 
     def _remove_bg(self, meta_img):
