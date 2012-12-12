@@ -7,7 +7,8 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PySide import QtCore, QtGui
+from PyQt4 import QtCore, QtGui
+from video_widget import VideoWidget
 
 class MainWindow(QtGui.QMainWindow):
     
@@ -26,16 +27,16 @@ class MainWindow(QtGui.QMainWindow):
         self.groupBox.setObjectName("groupBox")
         self.verticalLayout = QtGui.QVBoxLayout(self.groupBox)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.graphicsView = QtGui.QGraphicsView(self.groupBox)
+        self.video_widget = VideoWidget(self.groupBox)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.graphicsView.sizePolicy().hasHeightForWidth())
-        self.graphicsView.setSizePolicy(sizePolicy)
-        self.graphicsView.setMinimumSize(QtCore.QSize(400, 300))
-        self.graphicsView.setBaseSize(QtCore.QSize(0, 0))
-        self.graphicsView.setObjectName("graphicsView")
-        self.verticalLayout.addWidget(self.graphicsView)
+        sizePolicy.setHeightForWidth(self.video_widget.sizePolicy().hasHeightForWidth())
+        self.video_widget.setSizePolicy(sizePolicy)
+        self.video_widget.setMinimumSize(QtCore.QSize(400, 300))
+        self.video_widget.setBaseSize(QtCore.QSize(0, 0))
+        self.video_widget.setObjectName("video_widget")
+        self.verticalLayout.addWidget(self.video_widget)
         self.snap_button = QtGui.QPushButton(self.groupBox)
         self.snap_button.setObjectName("snap_button")
         self.verticalLayout.addWidget(self.snap_button)
