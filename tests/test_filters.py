@@ -1,7 +1,7 @@
 import unittest
 from filters.base_filter import BaseFilter, MetaImg
-from filters.calibrate_chessboard import CalibrateChessFilter
 from filters.separate_object import SeparateObjectFilter
+from filters.calibrate_reddot import CalibrateRedDotFilter
 import cv2.cv as cv
 import cv2
 import numpy as np
@@ -27,54 +27,21 @@ class CalibrationFilterTest(unittest.TestCase):
         self.assertEqual(meta_img.img, 'asd')
         
     def test_gray(self):
-        f1 = CalibrateChessFilter()
+        f1 = CalibrateRedDotFilter()
         meta_img = MetaImg(self.lena3, {})
         f1(meta_img)
         self.assertEqual(meta_img.gray.shape[:2], self.lena3_ref.shape[:2])
      
     def test_avg(self):
-        f1 = CalibrateChessFilter({'dims':(3,2)})
-        avg = f1._avg_square_size_in_px(np.array( [ [[3.0,1.0]], [[4.0,1.0]], [[5.0, 1.0]], \
-                                       [[3.0,2.0]], [[4.0,2.0]], [[5.0, 2.0]] ]))
+        f1 = CalibrateRedDotFilter({'dims':(3,2)})
+        avg = f1._avg_diameter(((10,10),(20,30),78))
         
-        self.assertAlmostEqual(avg, 1.0)
-        
-    def find_corners_test(self):
-        f1 = CalibrateChessFilter({'dims': (4,4),
-                                   'square_size_in_mm': 5})
-        meta_img = MetaImg(self.chess_and_oval1, {})
-        f1(meta_img)
-        self.assertLess(abs(meta_img.meta['mm_on_px'] - 0.3333), 0.05)
-        
-    def test_find_corners_tilted(self):
-        im3 = cv2.imread('tests/chess3.jpg', cv2.CV_LOAD_IMAGE_COLOR)
-        f1 = CalibrateChessFilter({'dims': (4,4),
-                                   'square_size_in_mm': 5})
-        meta_img = MetaImg(im3, {})
-        f1(meta_img)
-        self.assertTrue(meta_img.meta['ok'])
-        
-        
-    def test_find_corners_real(self):
-        im3 = cv2.imread('tests/chess5.jpg', cv2.CV_LOAD_IMAGE_COLOR)
-        f1 = CalibrateChessFilter({'dims': (4,4),
-                                   'square_size_in_mm': 5})
-        meta_img = MetaImg(im3, {})
-        f1(meta_img)
-        self.assertTrue(meta_img.meta['ok'])
-        
-    def test_find_corners_joint(self):
-        im3 = cv2.imread('tests/chess_and_seed2.jpg', cv2.CV_LOAD_IMAGE_COLOR)
-        f1 = CalibrateChessFilter({'dims': (4,4),
-                                   'square_size_in_mm': 5})
-        meta_img = MetaImg(im3, {})
-        f1(meta_img)
-        self.assertTrue(meta_img.meta['ok'])
+        self.assertAlmostEqual(avg, 25)
         
     def test_chess_speed(self):
-        im3 = cv2.imread('tests/chess_and_seed2.jpg', cv2.CV_LOAD_IMAGE_COLOR)
-        f1 = CalibrateChessFilter({'dims': (4,4),
-                                   'square_size_in_mm': 5})
+        im3 = cv2.imread('tests/reddot_seed.jpg', cv2.CV_LOAD_IMAGE_COLOR)
+        f1 = CalibrateRedDotFilter({'dims': (4,4),
+                                   'dot_diameter_in_mm': 5})
         t = time()
         for i in xrange(25):
             meta_img = MetaImg(np.array(im3), {})
@@ -83,34 +50,51 @@ class CalibrationFilterTest(unittest.TestCase):
         self.assertLess(t2-t, 4)
         
         
+class RedDotCalibrationTest(unittest.TestCase):
+    
+    def test_red_filter(self):
+        im3 = cv2.imread('tests/reddot_seed.jpg', cv2.CV_LOAD_IMAGE_COLOR)
+        f = CalibrateRedDotFilter()
+        imred = f._red_filter(im3)
+        self.assertGreater(np.sum(imred), 400)
+        
+    def test_filter(self):
+        im3 = cv2.imread('tests/reddot_seed.jpg', cv2.CV_LOAD_IMAGE_COLOR)
+        f = CalibrateRedDotFilter()
+        meta_img = MetaImg(im3, {})
+        f(meta_img)
+        self.assertTrue(meta_img.meta['ok'])
+        self.assertAlmostEqual(meta_img.meta['mm_on_px'], 0.010925770496)
         
 class SeparateObjectFilterTest(unittest.TestCase):
     def setUp(self):
         pass
 
     def test_bg_avg(self):
-        im3 = cv2.imread('tests/chess_and_seed2.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        im3 = cv2.imread('tests/reddot_seed.jpg', cv.CV_LOAD_IMAGE_COLOR)
         f1 = SeparateObjectFilter()
         meta_img = MetaImg(im3, {})
         f1.filter(meta_img)
         cv2.imwrite('mask.png', meta_img.meta['mask'])
         self.assertGreater(meta_img.meta['bg_avg'], 160)
         
-    def test_remove_chessboard(self):
-        im3 = cv2.imread('tests/chess3.jpg', cv.CV_LOAD_IMAGE_COLOR)
+    def test_remove_reddot(self):
+        im3 = cv2.imread('tests/reddot.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        f0 = CalibrateRedDotFilter()
         f1 = SeparateObjectFilter()
         meta_img = MetaImg(im3, {})
+        f0.filter(meta_img)
         f1.filter(meta_img)
         self.assertLess(np.sum(meta_img.meta['mask'])/255, 30)
         
     def test_elipse(self):
-        im3 = cv2.imread('tests/chess_and_seed2.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        im3 = cv2.imread('tests/reddot_seed.jpg', cv.CV_LOAD_IMAGE_COLOR)
         f1 = SeparateObjectFilter()
         meta_img = MetaImg(im3, {})
         f1.filter(meta_img)
         self.assertTrue(meta_img.meta.get('ellipsis', False))
         
-    def test_no_chess(self):
+    def test_no_red_dot(self):
         im3 = cv2.imread('tests/lena.jpg', cv.CV_LOAD_IMAGE_COLOR)
         f1 = SeparateObjectFilter()
         meta_img = MetaImg(im3, {})
@@ -129,7 +113,7 @@ class SeparateObjectFilterTest(unittest.TestCase):
             self.fail()
             
     def test_speed(self):
-        im3 = cv2.imread('tests/chess_and_seed2.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        im3 = cv2.imread('tests/reddot_seed.jpg', cv.CV_LOAD_IMAGE_COLOR)
         f1 = SeparateObjectFilter()
         t = time()
         for i in xrange(25):
@@ -142,9 +126,9 @@ class SeparateObjectFilterTest(unittest.TestCase):
 
 
     def test_measure(self):
-        im3 = cv2.imread('tests/chess_and_seed2.jpg', cv.CV_LOAD_IMAGE_COLOR)
-        f1 = CalibrateChessFilter({'dims': (4,4),
-                                   'square_size_in_mm': 5})
+        im3 = cv2.imread('tests/reddot_seed.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        f1 = CalibrateRedDotFilter({'dims': (4,4),
+                                   'dot_diameter_in_mm': 5})
         f2 = SeparateObjectFilter()
 
         meta_img = MetaImg(im3, {})
@@ -156,9 +140,9 @@ class SeparateObjectFilterTest(unittest.TestCase):
 class SppedTest(unittest.TestCase):
     
     def full_fitlers_test(self):
-        im3 = cv2.imread('tests/chess_and_seed2.jpg', cv.CV_LOAD_IMAGE_COLOR)
-        f1 = CalibrateChessFilter({'dims': (4,4),
-                                   'square_size_in_mm': 5})
+        im3 = cv2.imread('tests/reddot_seed.jpg', cv.CV_LOAD_IMAGE_COLOR)
+        f1 = CalibrateRedDotFilter({'dims': (4,4),
+                                   'dot_diameter_in_mm': 5})
         f2 = SeparateObjectFilter()
         
         t = time()

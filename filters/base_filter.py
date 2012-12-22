@@ -10,7 +10,6 @@ class MetaImg(object):
         self.meta = meta
         self.params = params
         self._gray = None
-        self._corners = None
         
         
     @property
@@ -21,17 +20,6 @@ class MetaImg(object):
         self._gray = cv2.cvtColor(self.img, cv2.COLOR_RGB2GRAY)
         return self.gray
     
-    @property
-    def corners(self):
-        if self._corners != None:
-            return self._corners
-        
-        found_all, corners = cv2.findChessboardCorners(self.gray,
-                                    self.params['dims'],
-                                    flags=cv2.CALIB_CB_NORMALIZE_IMAGE+ cv2.CALIB_CB_FILTER_QUADS + cv2.CALIB_CB_ADAPTIVE_THRESH)
-        self._corners = found_all, corners
-        return found_all, corners
-
 
 class BaseFilter(object):
     

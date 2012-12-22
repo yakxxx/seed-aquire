@@ -18,7 +18,7 @@ class MainWindow(QtGui.QMainWindow):
         
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(643, 442)
+        MainWindow.resize(800, 600)
         self.centralWidget = QtGui.QWidget(MainWindow)
         self.centralWidget.setObjectName("centralWidget")
         self.gridLayout = QtGui.QGridLayout(self.centralWidget)
@@ -33,7 +33,7 @@ class MainWindow(QtGui.QMainWindow):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.video_widget.sizePolicy().hasHeightForWidth())
         self.video_widget.setSizePolicy(sizePolicy)
-        self.video_widget.setMinimumSize(QtCore.QSize(400, 300))
+        self.video_widget.setMinimumSize(QtCore.QSize(640, 480))
         self.video_widget.setBaseSize(QtCore.QSize(0, 0))
         self.video_widget.setObjectName("video_widget")
         self.verticalLayout.addWidget(self.video_widget)

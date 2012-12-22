@@ -14,8 +14,7 @@ class SeparateObjectFilter(BaseFilter):
         meta, mask = self._remove_bg(meta_img)
         meta_img.meta.update(meta)
         
-        p1, p2, mask2 = self._remove_checkerboard(meta_img)
-        cv2.rectangle(meta_img.img, p1, p2, (0,255,0))
+        p1, p2, mask2 = self._remove_red_dot(meta_img)
         
         mask = np.bitwise_and(mask, mask2)
         meta_img.meta['mask'] = mask
@@ -23,7 +22,6 @@ class SeparateObjectFilter(BaseFilter):
         contour = self._find_max_contour(mask)
         if len(contour) > 5:
             ellipse = cv2.fitEllipse(contour.astype('int'))
-            cv2.ellipse(meta_img.img, ellipse, (0,255,0))
             meta_img.meta['ellipsis'] = ellipse
     
 
@@ -51,20 +49,15 @@ class SeparateObjectFilter(BaseFilter):
         cv2.rectangle(mask, (size[1], size[0]), (size[1] - w, size[0] - w), 255, thickness=cv.CV_FILLED)
         return mask
     
-    def _remove_checkerboard(self, meta_img):
-        found_all, corners = meta_img.corners
-        if not found_all:
-            size = meta_img.img.shape[:2]
-            mask = np.empty(size, dtype=np.uint8)
-            mask.fill(255)
-            p1 = p2 = (0,0)
-        else:
-            x_cords = corners[:, 0, 0]
-            y_cords = corners[:, 0, 1]
+    def _remove_red_dot(self, meta_img):
+        red_dot_cont = meta_img.meta.get('red_dot_contour', False)
+        if red_dot_cont is not False:
+            x_cords = red_dot_cont[:, 0, 0]
+            y_cords = red_dot_cont[:, 0, 1]
             center_x = np.average(x_cords)
             center_y = np.average(y_cords)
-            width = int((max(x_cords) - min(x_cords)) * 1.65)
-            height = int((max(y_cords) - min(y_cords)) * 1.65)
+            width = int((max(x_cords) - min(x_cords)) * 1.15)
+            height = int((max(y_cords) - min(y_cords)) * 1.15)
             
             size = meta_img.img.shape[:2]
             mask = np.empty(size, dtype=np.uint8)
@@ -73,7 +66,12 @@ class SeparateObjectFilter(BaseFilter):
             p2 = ( int(min(size[0], center_x + width/2)), int(min(size[1], center_y + width/2)) )
             cv2.rectangle(mask, p1, p2, 
                     0, thickness=cv.CV_FILLED)
-        
+        else:
+            size = meta_img.img.shape[:2]
+            mask = np.empty(size, dtype=np.uint8)
+            mask.fill(255)
+            p1 = p2 = (0,0)
+            
         return p1, p2, mask
         
     def _find_max_contour(self, mask):
