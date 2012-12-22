@@ -33,11 +33,12 @@ class CalibrateRedDotFilter(BaseFilter):
         r = img[:,:,2].astype(np.int32)
         g = img[:,:,1].astype(np.int32)
         b = img[:,:,1].astype(np.int32)
-        ret = 100*r - 79*g - 79*b
+        ret = 100*r - 85*g - 85*b
         ret /= 100
         ret.clip(0, 255, out=ret)
         ret = ret.astype(np.uint8)
         _, ret = cv2.threshold(ret, 30, 255, type=cv2.THRESH_BINARY)
+        ret = cv2.medianBlur(ret, 3)
         return ret
     
     def _find_max_contour(self, mask):

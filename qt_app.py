@@ -40,12 +40,21 @@ class App(QApplication):
                 self.calib_filter(self.meta_img)
                 self.sep_filter(self.meta_img)
                 self._frame_count = 0
-            if self.meta_img.meta.get('ellipsis', None):
-                print('w', self.meta_img.meta['ellipsis'][1][0] * self.meta_img.meta['mm_on_px'],
-                      'h', self.meta_img.meta['ellipsis'][1][1] * self.meta_img.meta['mm_on_px'])
-                cv2.ellipse(vis_small, self.meta_img.meta['ellipsis'], (0,255,0))
-            if self.meta_img.meta.get('red_dot_ellipsis', None):
-                cv2.ellipse(vis_small, self.meta_img.meta['red_dot_ellipsis'], (0,0,255))
+            meta = self.meta_img.meta
+            if meta.get('ellipsis', None) is not None:
+                print('w', meta['ellipsis'][1][0] * meta['mm_on_px'],
+                      'h', meta['ellipsis'][1][1] * meta['mm_on_px'])
+                cv2.ellipse(vis_small, meta['ellipsis'], (0,255,0))
+            
+            if meta.get('red_dot_ellipsis', None) is not None:
+                cv2.ellipse(vis_small, meta['red_dot_ellipsis'], (0,0,255))
+            
+            if meta.get('mask', None) is not None:
+                mask = meta['mask']
+                shape = mask.shape[0], mask.shape[1], 3
+                mask3 = np.zeros(shape, dtype=np.uint8)
+                mask3[:,:,0] = mask
+                vis_small = cv2.addWeighted(vis_small, 1.0, mask3, 0.3, 0)
             
             self.video_widget.push_frame(vis_small)
             self._frame_count += 1

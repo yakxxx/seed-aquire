@@ -2,17 +2,18 @@ from base_filter import BaseFilter
 import cv2.cv as cv
 import cv2
 import numpy as np
+import math
 
 class SeparateObjectFilter(BaseFilter):
-    BG_PROBE_WIDTH = .08
+    BG_PROBE_WIDTH = .06
     OBJECT_PROBE_WIDTH = 0.5
+    THRESH_BAR = 0.8 #threshold = avg_bg - THRESH_BAR * std_bg
     
     def __init__(self, params={}):
         super(SeparateObjectFilter, self).__init__(params)
         
     def filter(self, meta_img):
-        meta, mask = self._remove_bg(meta_img)
-        meta_img.meta.update(meta)
+        mask = self._remove_bg(meta_img)
         
         p1, p2, mask2 = self._remove_red_dot(meta_img)
         
@@ -26,18 +27,15 @@ class SeparateObjectFilter(BaseFilter):
     
 
     def _remove_bg(self, meta_img):
-        meta = {}
         mask = self._create_bg_probe_mask(meta_img.img)
-        cut = np.ma.masked_array(meta_img.gray, mask)
-        
-        avg_bg = np.average(cut)
-        std_bg = np.std(cut)
-        meta['bg_avg'] = avg_bg
-        meta['bg_std'] = std_bg
-        thresh = avg_bg - 1.5*std_bg
-        meta['bg_thresh'] = thresh
-        _, mask = cv2.threshold(meta_img.gray, thresh, 255, type=cv2.THRESH_BINARY_INV)
-        return meta, mask
+        hsv = cv2.cvtColor(meta_img.img, cv.CV_BGR2HSV)
+        probab = self._bg_probability(mask, hsv[:,:,1])
+        probab += 0.2 * self._bg_probability(mask, hsv[:,:,2])
+        probab *= 10000
+        probab = np.clip(probab, 0, 255)
+        probab = probab.astype(np.uint8) 
+        _, mask = cv2.threshold(probab, 80 , 255, type=cv2.THRESH_BINARY_INV)
+        return mask
     
     def _create_bg_probe_mask(self, img):
         size = img.shape[:2]
@@ -49,21 +47,30 @@ class SeparateObjectFilter(BaseFilter):
         cv2.rectangle(mask, (size[1], size[0]), (size[1] - w, size[0] - w), 255, thickness=cv.CV_FILLED)
         return mask
     
+    def _bg_probability(self, bg_probe_mask, layer):
+        cut = np.ma.masked_array(layer, bg_probe_mask)
+        avg_bg = np.average(cut)
+        std_bg = np.std(cut)
+        ret = np.zeros(cut.shape)
+        probab = np.vectorize(lambda px: self._normpdf(px, avg_bg, std_bg))
+        ret = probab(layer)
+        return ret
+    
     def _remove_red_dot(self, meta_img):
         red_dot_cont = meta_img.meta.get('red_dot_contour', False)
         if red_dot_cont is not False:
             x_cords = red_dot_cont[:, 0, 0]
             y_cords = red_dot_cont[:, 0, 1]
-            center_x = np.average(x_cords)
-            center_y = np.average(y_cords)
+            center_x = (np.max(x_cords) + np.min(x_cords)) / 2
+            center_y = (np.max(y_cords) + np.min(y_cords)) / 2
             width = int((max(x_cords) - min(x_cords)) * 1.15)
             height = int((max(y_cords) - min(y_cords)) * 1.15)
             
             size = meta_img.img.shape[:2]
             mask = np.empty(size, dtype=np.uint8)
             mask.fill(255)
-            p1 = ( int(max(0, center_x - width/2)), int(max(0, center_y - width/2)) )
-            p2 = ( int(min(size[0], center_x + width/2)), int(min(size[1], center_y + width/2)) )
+            p1 = ( int(max(0, center_x - width/2)), int(max(0, center_y - height/2)) )
+            p2 = ( int(min(size[1], center_x + width/2)), int(min(size[0], center_y + height/2)) )
             cv2.rectangle(mask, p1, p2, 
                     0, thickness=cv.CV_FILLED)
         else:
@@ -82,3 +89,12 @@ class SeparateObjectFilter(BaseFilter):
             return []
         contour = contours[i]
         return contour
+    
+    def _normpdf(self,x, mean, sd):
+        if sd == 0:
+            return 1.0
+        var = float(sd)**2
+        pi = 3.1415926
+        denom = (2*pi*var)**.5
+        num = math.exp(-(float(x)-float(mean))**2/(2*var))
+        return num/denom
