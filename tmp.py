@@ -2,38 +2,19 @@
 
 # Form implementation generated from reading ui file 'qt_app.ui'
 #
-# Created: Mon Dec 10 20:00:16 2012
-#      by: pyside-uic 0.2.13 running on PySide 1.1.2
+# Created: Sun Dec 23 17:33:22 2012
+#      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import pyqtSignal as Signal
-from video_widget import VideoWidget
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
     _fromUtf8 = lambda s: s
 
-class MainWindow(QtGui.QMainWindow):
-    key_press = Signal(int)
-    key_release = Signal(int)
-    destroyed = Signal()
-    
-    def __init__(self, *args, **kwargs):
-        super(MainWindow, self).__init__(*args, **kwargs)
-        self.setupUi(self)
-        
-    def keyPressEvent(self, event):
-        self.key_press.emit(event.key())
-        
-    def keyReleaseEvent(self, event):
-        self.key_release.emit(event.key())
-        
-    def closeEvent(self, event):
-        self.destroyed.emit()
-        
+class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
         MainWindow.resize(800, 600)
@@ -45,7 +26,7 @@ class MainWindow(QtGui.QMainWindow):
         self.groupBox.setObjectName(_fromUtf8("groupBox"))
         self.verticalLayout = QtGui.QVBoxLayout(self.groupBox)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.video_widget = VideoWidget(self.groupBox)
+        self.video_widget = QtGui.Qvideo_widget(self.groupBox)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)

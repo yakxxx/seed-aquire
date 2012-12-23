@@ -1,3 +1,5 @@
 eclipse.preferences.version=1
 encoding/main_window.py=utf-8
 encoding/qt_app.py=utf-8
+encoding/tmp.py=utf-8
+encoding/video_thread.py=utf-8
