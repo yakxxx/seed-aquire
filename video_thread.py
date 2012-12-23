@@ -61,6 +61,9 @@ class VideoThread(Thread):
     def hide_mask(self):
         self._show_mask = False
         
+    def set_separation_threshold(self, value):
+        self.sep_filter.set_thresh(value)
+        
     def snap(self):
         self._change_res_cam(self._snap_grab_res)
         ret, frame = self.read_cam()
@@ -141,10 +144,13 @@ class VideoThread(Thread):
         if meta.get('red_dot_ellipsis', None) is not None:
             cv2.ellipse(img, meta['red_dot_ellipsis'], (0, 0, 255))
             
-        if meta.get('mask', None) is not None:
+        if meta.get('mask', None) is not None and self._show_mask:
             mask = meta['mask']
             shape = mask.shape[0], mask.shape[1], 3
             mask3 = np.zeros(shape, dtype=np.uint8)
             mask3[:, :, 0] = mask
             if mask3.shape == img.shape:
                 cv2.addWeighted(img, 1.0, mask3, 0.3, 0, img)
+                
+                
+                

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from base_filter import BaseFilter
 import cv2.cv as cv
 import cv2
@@ -7,9 +8,9 @@ import math
 class SeparateObjectFilter(BaseFilter):
     BG_PROBE_WIDTH = .06
     OBJECT_PROBE_WIDTH = 0.5
-    THRESH_BAR = 0.8 #threshold = avg_bg - THRESH_BAR * std_bg
     
     def __init__(self, params={}):
+        self._thresh = 70
         super(SeparateObjectFilter, self).__init__(params)
         
     def filter(self, meta_img):
@@ -24,7 +25,9 @@ class SeparateObjectFilter(BaseFilter):
         if len(contour) > 5:
             ellipse = cv2.fitEllipse(contour.astype('int'))
             meta_img.meta['ellipsis'] = ellipse
-    
+            
+    def set_thresh(self, value):
+        self._thresh = value
 
     def _remove_bg(self, meta_img):
         mask = self._create_bg_probe_mask(meta_img.img)
@@ -34,7 +37,7 @@ class SeparateObjectFilter(BaseFilter):
         probab *= 10000
         probab = np.clip(probab, 0, 255)
         probab = probab.astype(np.uint8) 
-        _, mask = cv2.threshold(probab, 70 , 255, type=cv2.THRESH_BINARY_INV)
+        _, mask = cv2.threshold(probab, self._thresh , 255, type=cv2.THRESH_BINARY_INV)
         return mask
     
     def _create_bg_probe_mask(self, img):

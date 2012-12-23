@@ -1,4 +1,6 @@
 eclipse.preferences.version=1
+encoding//filters/base_filter.py=utf-8
+encoding//filters/separate_object.py=utf-8
 encoding/main_window.py=utf-8
 encoding/qt_app.py=utf-8
 encoding/tmp.py=utf-8

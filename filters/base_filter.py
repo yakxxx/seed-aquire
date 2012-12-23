@@ -1,16 +1,14 @@
+# -*- coding: utf-8 -*-
 import cv2.cv as cv
 import cv2
 
 
-
 class MetaImg(object):
-    
     def __init__(self, img, meta, params={'dims': (4,4)}):
         self.img = img
         self.meta = meta
         self.params = params
         self._gray = None
-        
         
     @property
     def gray(self):
@@ -22,7 +20,6 @@ class MetaImg(object):
     
 
 class BaseFilter(object):
-    
     def __init__(self, params = {}):
         self.params = params
         
