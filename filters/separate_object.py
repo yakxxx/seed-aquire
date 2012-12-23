@@ -34,7 +34,7 @@ class SeparateObjectFilter(BaseFilter):
         probab *= 10000
         probab = np.clip(probab, 0, 255)
         probab = probab.astype(np.uint8) 
-        _, mask = cv2.threshold(probab, 80 , 255, type=cv2.THRESH_BINARY_INV)
+        _, mask = cv2.threshold(probab, 70 , 255, type=cv2.THRESH_BINARY_INV)
         return mask
     
     def _create_bg_probe_mask(self, img):

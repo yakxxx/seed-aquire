@@ -8,13 +8,22 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import pyqtSignal as Signal
 from video_widget import VideoWidget
 
 class MainWindow(QtGui.QMainWindow):
+    key_press = Signal(str)
+    key_release = Signal(str)
     
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
+        
+    def keyPressEvent(self, event):
+        self.key_press.emit(event.text())
+        
+    def keyReleaseEvent(self, event):
+        self.key_release.emit(event.text())
         
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
