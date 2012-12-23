@@ -4,14 +4,6 @@ import sys
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from main_window import MainWindow
-import cv2
-import cv2.cv as cv   
-import numpy as np
-
-from filters.calibrate_chessboard import CalibrateChessFilter
-from filters.calibrate_reddot import CalibrateRedDotFilter
-from filters.separate_object import SeparateObjectFilter
-from filters.base_filter import MetaImg
 
 from video_thread import VideoThread
 
