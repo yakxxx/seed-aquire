@@ -18,9 +18,10 @@ import time
 
 class VideoThread(Thread):
     
-    def __init__(self, video_widget):
+    def __init__(self, video_widget, conf):
         super(VideoThread, self).__init__()
-        self.cam_num = 1
+        self.cam_num = conf.get('cam_num', 0)
+        self.red_dot_diameter = conf.get('dot_diameter_in_mm', 1)
         self._frame_count = 0
         self._show_detail = False
         self._killed = False
@@ -30,8 +31,7 @@ class VideoThread(Thread):
         self.video_widget = video_widget
         self._cam_mutex = Lock()
         
-        self.calib_filter = CalibrateRedDotFilter({'dims': (4,4),
-                                   'square_size_in_mm': 5})
+        self.calib_filter = CalibrateRedDotFilter({'dot_diameter_in_mm': self.red_dot_diameter})
         self.sep_filter = SeparateObjectFilter()
         
         self._timer = QTimer()
@@ -67,10 +67,11 @@ class VideoThread(Thread):
     def snap(self):
         self._change_res_cam(self._snap_grab_res)
         ret, frame = self.read_cam()
-        if ret:
-            cv2.imshow('snapshot', self._downscale_4(frame))
+#        if ret:
+#            cv2.imshow('snapshot', self._downscale_4(frame))
         self._change_res_cam(self._prev_grab_res)
-        return frame
+        downscaled = self._downscale_4(frame)
+        return frame, downscaled
     
     def on_frame(self):
         ret, frame = self.read_cam()

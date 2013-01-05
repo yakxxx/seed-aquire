@@ -7,8 +7,7 @@ import math
 class CalibrateRedDotFilter(BaseFilter):
     
     def __init__(self, params={}):
-        p = {'dims': (5,5),
-             'dot_diameter_in_mm': 1}
+        p = {'dot_diameter_in_mm': 1}
         p.update(params)
         
         super(CalibrateRedDotFilter, self).__init__(p)
